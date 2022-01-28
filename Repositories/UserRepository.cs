@@ -24,9 +24,9 @@ namespace AuthServerApp.Repositories
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<User> GetUserById(string Id)
+        public async Task<User> GetUserById(string id)
         {
-            return await _userManager.FindByIdAsync(Id);
+            return await _userManager.FindByIdAsync(id);
         }
 
         public async Task UpdateUserAsync(User user)

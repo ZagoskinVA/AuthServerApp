@@ -36,7 +36,7 @@ namespace AuthServerApp.Services
             if (result.Succeeded)
             {
                 var user = await _userRepository.GetUserByEmailAsync(model.Email);
-                var token = _tokenGenerator.GenerateRefreshToken(user);
+                var token = _tokenGenerator.GenerateRefreshToken(new UserViewModel { Email = user.Email, Id = user.Id, NickName = user.NickName });
                 _tokenRepository.AddRefreshTokenToUser(token, user.Id);
                 return token;
             }

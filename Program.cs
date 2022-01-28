@@ -45,6 +45,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<SendMessageService>();
+builder.Services.AddScoped<IRefreshTokenManager, RefreshTokenManager>();
 
 var app = builder.Build();
 

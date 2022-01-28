@@ -8,7 +8,7 @@ namespace AuthServerApp.Interfaces
         Task<User> GetUserByEmailAsync(string email);
         Task UpdateUserAsync(User user);
         Task<IdentityResult> AddUserAsync(User user, string password);
-        Task<User> GetUserById(string Id);
+        Task<User> GetUserById(string id);
         Task<string> GetEmailConfarmationTokenAsync(User user);
     }
 }
