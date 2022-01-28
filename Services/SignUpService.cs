@@ -14,6 +14,10 @@ namespace AuthServerApp.Services
 
         public SignUpService(IUserRepository userRepository, SendMessageService sendMessageService)
         {
+            if(userRepository == null)
+                throw new ArgumentNullException(nameof(userRepository));
+            if(sendMessageService == null)
+                throw new ArgumentNullException(nameof(sendMessageService));
             _userRepository = userRepository;
             _sendMessageService = sendMessageService;
             Errors = new List<string>();

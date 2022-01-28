@@ -10,6 +10,8 @@ namespace AuthServerApp.Repositories
 
         public RefreshTokenRepository(ApplicationContext context)
         {
+            if(context == null)
+                throw new ArgumentNullException(nameof(context));
             _context = context;
         }
         public void AddRefreshTokenToUser(RefreshToken refreshToken, string userId)

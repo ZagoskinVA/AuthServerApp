@@ -8,6 +8,8 @@ namespace AuthServerApp.Services
 
         public SendMessageService(IPublisher publisher)
         {
+            if(publisher == null)
+                throw new ArgumentNullException(nameof(publisher));
             _publisher = publisher;
         }
 

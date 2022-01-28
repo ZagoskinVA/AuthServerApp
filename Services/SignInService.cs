@@ -15,6 +15,14 @@ namespace AuthServerApp.Services
 
         public SignInService(SignInManager<User> signInManager, IJwtTokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenRepository tokenRepository)
         {
+            if(userRepository == null)
+                throw new ArgumentNullException(nameof(userRepository));
+            if(tokenGenerator == null)
+                throw new ArgumentNullException(nameof(tokenGenerator));
+            if(signInManager == null)
+                throw new ArgumentNullException(nameof(signInManager));
+            if(tokenRepository == null)
+                throw new ArgumentNullException(nameof(tokenRepository));
             _userRepository = userRepository;
             _tokenGenerator = tokenGenerator;
             _signInManager = signInManager;

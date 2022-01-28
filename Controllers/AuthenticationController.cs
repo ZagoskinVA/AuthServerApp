@@ -13,6 +13,10 @@ namespace AuthServerApp.Controllers
         private readonly ISignIn _signInService;
         public AuthenticationController(ISignIn signInService, ISignUp signUpService)
         {
+            if(signInService == null)
+                throw new ArgumentNullException(nameof(signInService));
+            if(signUpService == null)
+                throw new ArgumentNullException(nameof(signUpService));
             _signInService = signInService;
             _signUpService = signUpService;
         }

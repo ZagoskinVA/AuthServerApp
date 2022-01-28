@@ -9,6 +9,8 @@ namespace AuthServerApp.Repositories
         private readonly UserManager<User> _userManager;
         public UserRepository(UserManager<User> userManager)
         {
+            if(userManager == null)
+                throw new ArgumentNullException(nameof(userManager));
             _userManager = userManager;
         }
 
