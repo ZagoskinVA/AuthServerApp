@@ -18,12 +18,20 @@ namespace AuthServerApp.Services
             _config = config;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((config["TokenKey"])));
         }
-        public RefreshToken GenerateRefreshToken(User user)
+        public RefreshToken GenerateRefreshToken(UserViewModel user)
         {
-            return new RefreshToken { JwtToken = GenerateJwtToken(user), RefreshJwtToken = GEnerateRefreshJwtToken(), UserId = user.Id };
+            var token =  new RefreshToken { JwtToken = GenerateJwtToken(user), RefreshJwtToken = GenerateRefreshJwtToken(), UserId = user.Id,  User = user};
+            token.UpdateExpDate();
+            return token;
         }
 
-        private string GenerateJwtToken(User user) 
+        public void UpdatRefreshToken(RefreshToken refreshToken)
+        {
+            refreshToken.JwtToken = GenerateJwtToken(refreshToken.User);
+            refreshToken.UpdateExpDate();
+        }
+
+        private string GenerateJwtToken(UserViewModel user) 
         {
             var claims = new List<Claim>
             {
@@ -38,7 +46,7 @@ namespace AuthServerApp.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private string GEnerateRefreshJwtToken()
+        private string GenerateRefreshJwtToken()
         {
             using (var hash = SHA512.Create())
             {

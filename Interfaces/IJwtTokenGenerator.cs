@@ -4,6 +4,7 @@ namespace AuthServerApp.Interfaces
 {
     public interface IJwtTokenGenerator
     {
-        public RefreshToken GenerateRefreshToken(User user);
+        public RefreshToken GenerateRefreshToken(UserViewModel user);
+        public void UpdatRefreshToken(RefreshToken refreshToken);
     }
 }

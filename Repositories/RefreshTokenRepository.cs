@@ -17,9 +17,16 @@ namespace AuthServerApp.Repositories
         public void AddRefreshTokenToUser(RefreshToken refreshToken, string userId)
         {
             refreshToken.UserId = userId;
-            _context.RefreshTokens.Add(refreshToken);
+            var token = _context.RefreshTokens.FirstOrDefault(x => x.UserId == userId);
+            if (token == null)
+                _context.RefreshTokens.Add(refreshToken);
+            else 
+            {
+                token.JwtToken = refreshToken.JwtToken;
+                token.ExpirationDate = refreshToken.ExpirationDate;
+                token.RefreshJwtToken = refreshToken.RefreshJwtToken;
+            }
             _context.SaveChanges();
-            refreshToken.User = null;
         }
 
         public RefreshToken GetRefreshTokenByUserId(string userId)
