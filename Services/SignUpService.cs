@@ -40,7 +40,7 @@ namespace AuthServerApp.Services
                 {
                     var message = await _userRepository.GetEmailConfarmationTokenAsync(user);
                     var emailMessage = new EmailMessageModel { Email = model.Email, Subject = "Подтверждение email", Message = $"Ссылка на подтвеждение <a>{message}</a>" };
-                    _sendMessageService.SendMessage(JsonConvert.SerializeObject(emailMessage), "email_message");
+                    _sendMessageService.SendMessage(JsonConvert.SerializeObject(emailMessage), "email");
                     return true;
                 }
                 Errors.Add("Ошибка при создании пользователя");

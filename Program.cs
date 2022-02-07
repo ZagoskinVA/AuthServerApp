@@ -1,4 +1,5 @@
 using AuthServerApp.Contexts;
+using AuthServerApp.Extensions;
 using AuthServerApp.Interfaces;
 using AuthServerApp.Models;
 using AuthServerApp.Repositories;
@@ -23,8 +24,8 @@ builder.Services.AddSwaggerGen();
 
 // My Service
 ConfigurationManager configuration = builder.Configuration;
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@host.docker.internal:5672"));
+
+builder.Services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@localhost:5672"));
 builder.Services.AddScoped<IPublisher>(x => new Publisher(x.GetService<IConnectionProvider>(),
     "email_exchange",
     ExchangeType.Topic));
@@ -37,6 +38,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequiredLength = 1;
     options.Password.RequiredUniqueChars = 0;
 }).AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
 
 builder.Services.AddScoped<ISignIn, SignInService>();
@@ -49,7 +51,9 @@ builder.Services.AddScoped<IRefreshTokenManager, RefreshTokenManager>();
 
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
+app.UseExceptionHandlerMiddleware();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
