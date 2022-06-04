@@ -47,7 +47,7 @@ jobs:
         with: 
             to: ${{ secrets.TELEGRAM_TO }}
             token: ${{ secrets.TELEGRAM_TOKEN }}
-            args: ${{ job.build.status }} ${{ steps.date.outputs.date }}
+            args: ${{ job.status }} ${{ steps.date.outputs.date }}
 
       
         
