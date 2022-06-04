@@ -15,6 +15,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       - name: Buildx
         id: buildx
@@ -36,6 +40,6 @@ jobs:
         with: 
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          args: New version publish $(date +%Y%m%d%H%M)
+          args: New version publish ${{ steps.date.outputs.date }}
         
         
