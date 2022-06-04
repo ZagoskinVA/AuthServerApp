@@ -41,5 +41,15 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           args: ${{ job.status }} ${{ steps.date.outputs.date }}
+  send:
+    runs-on: ubuntu-latest
+    steps:
+          - name: Send Notification
+            uses: appleboy/telegram-action@master
+            with: 
+              to: ${{ secrets.TELEGRAM_TO }}
+              token: ${{ secrets.TELEGRAM_TOKEN }}
+              args: ${{ job.build.status }} ${{ steps.date.outputs.date }}
+      
         
         
