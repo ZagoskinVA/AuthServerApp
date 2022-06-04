@@ -25,7 +25,7 @@ builder.Services.AddSwaggerGen();
 // My Service
 ConfigurationManager configuration = builder.Configuration;
 
-builder.Services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@localhost:5672"));
+builder.Services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@host.docker.internal:5672"));
 builder.Services.AddScoped<IPublisher>(x => new Publisher(x.GetService<IConnectionProvider>(),
     "email_exchange",
     ExchangeType.Topic));
