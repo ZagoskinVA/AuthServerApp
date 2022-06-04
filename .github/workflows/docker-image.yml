@@ -40,6 +40,6 @@ jobs:
         with: 
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
-          args: New version publish ${{ steps.date.outputs.date }}
+          args: ${{ job.status }} ${{ steps.date.outputs.date }}
         
         
