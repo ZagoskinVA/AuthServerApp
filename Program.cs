@@ -1,4 +1,6 @@
 using AuthServerApp.Contexts;
+using AuthServerApp.EventBus;
+using AuthServerApp.EventBus.Abstract;
 using AuthServerApp.Extensions;
 using AuthServerApp.Interfaces;
 using AuthServerApp.Models;
@@ -6,11 +8,16 @@ using AuthServerApp.Repositories;
 using AuthServerApp.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Plain.RabbitMQ;
+using Prometheus;
 using RabbitMQ.Client;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +32,13 @@ builder.Services.AddSwaggerGen();
 // My Service
 ConfigurationManager configuration = builder.Configuration;
 
-builder.Services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@host.docker.internal:5672"));
-builder.Services.AddScoped<IPublisher>(x => new Publisher(x.GetService<IConnectionProvider>(),
-    "email_exchange",
-    ExchangeType.Topic));
+builder.Services.AddSingleton(new ConnectionFactory()
+{
+    Uri = new Uri(builder.Configuration.GetSection("ConnectionStrings")["RabbitMQServerConnection"] ?? ""),
+    DispatchConsumersAsync = true
+});
+builder.Services.AddSingleton(typeof(IRabbitMqProducer<>), typeof(ProducerBase<>));
+
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -38,32 +48,50 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequiredLength = 1;
     options.Password.RequiredUniqueChars = 0;
 }).AddEntityFrameworkStores<ApplicationContext>().AddDefaultTokenProviders();
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(builder.Configuration.GetSection("ConnectionStrings")["DataContext"]));
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Elasticsearch(
+        new ElasticsearchSinkOptions(new Uri(builder.Configuration.GetSection("ConnectionStrings")["ElasticSearchConnection"] ?? "http://localhost:9200"))
+        {
+            AutoRegisterTemplate = true,
+            AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
+        }).WriteTo.Console().CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddScoped<ISignIn, SignInService>();
 builder.Services.AddScoped<ISignUp, SignUpService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
-builder.Services.AddScoped<SendMessageService>();
 builder.Services.AddScoped<IRefreshTokenManager, RefreshTokenManager>();
 
 var app = builder.Build();
-
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandlerMiddleware();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseCors(corsBuilder => corsBuilder.AllowAnyOrigin());
 app.UseHttpsRedirection();
-
+app.UseMetricServer();
+app.UseHttpMetrics();
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 
 app.MapControllers();
