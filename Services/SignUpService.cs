@@ -1,4 +1,6 @@
-﻿using AuthServerApp.Interfaces;
+﻿using AuthServerApp.EventBus;
+using AuthServerApp.EventBus.Abstract;
+using AuthServerApp.Interfaces;
 using AuthServerApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
@@ -8,18 +10,16 @@ namespace AuthServerApp.Services
     public class SignUpService : ISignUp
     {
         private readonly IUserRepository _userRepository;
-        private readonly SendMessageService _sendMessageService;
+        private readonly IRabbitMqProducer<EmailConfirmationEvent> _rabbitMqProducer;
 
         public List<string> Errors { get; }
 
-        public SignUpService(IUserRepository userRepository, SendMessageService sendMessageService)
+        public SignUpService(IUserRepository userRepository, IRabbitMqProducer<EmailConfirmationEvent> rabbitMqProducer)
         {
             if(userRepository == null)
                 throw new ArgumentNullException(nameof(userRepository));
-            if(sendMessageService == null)
-                throw new ArgumentNullException(nameof(sendMessageService));
             _userRepository = userRepository;
-            _sendMessageService = sendMessageService;
+            _rabbitMqProducer = rabbitMqProducer;
             Errors = new List<string>();
         }
 
@@ -40,7 +40,7 @@ namespace AuthServerApp.Services
                 {
                     var message = await _userRepository.GetEmailConfarmationTokenAsync(user);
                     var emailMessage = new EmailMessageModel { Email = model.Email, Subject = "Подтверждение email", Message = $"Ссылка на подтвеждение <a>{message}</a>" };
-                    _sendMessageService.SendMessage(JsonConvert.SerializeObject(emailMessage), "email");
+                    _rabbitMqProducer.Publish(emailMessage);
                     return true;
                 }
                 Errors.Add("Ошибка при создании пользователя");
